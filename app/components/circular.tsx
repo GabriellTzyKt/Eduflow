@@ -524,10 +524,6 @@ class App {
         text: "Svelte",
       },
       {
-        image: `/logos/Next-icon.svg`,
-        text: "Next",
-      },
-      {
         image: `/logos/React-icon.svg`,
         text: "React",
       },

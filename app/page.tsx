@@ -1,25 +1,86 @@
-'use client'
+"use client";
 import CircularGallery from "./components/circular";
 import SpotlightCard from "./components/spotlighCard";
 import PillNav from "./components/navbar";
 import Link from "next/link";
+import { useState, useEffect } from "react"; // 1. Import React Hooks
+import { createBrowserClient } from "@supabase/ssr"; // 2. Import Supabase
+import { User } from "@supabase/supabase-js";
+import { useRouter } from "next/navigation";
+import router from "next/router";
 
 export default function Home() {
+  const router = useRouter();
+
+  // --- LOGIKA AUTHENTICATION ---
+  const [user, setUser] = useState<User | null>(null);
+
+  // Buat client Supabase
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  useEffect(() => {
+    // Cek user saat pertama kali load
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    getUser();
+
+    // Listener realtime (opsional, agar update jika login/logout di tab lain)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+// 1. Logout langsung via client browser (lebih cepat & update state otomatis)
+    await supabase.auth.signOut();
+    
+    // 2. Kosongkan state user agar UI langsung berubah
+    setUser(null); 
+    
+    // 3. Refresh data server component (opsional)
+    router.refresh();
+  };
+
   const scrollToBenefits = () => {
     const element = document.getElementById("benefits-section");
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
     }
   };
+
+  const navItems = [
+    { label: "Home", href: "/" },
+
+    // JIKA USER SUDAH LOGIN (Tampilkan Courses & Sign Out)
+    ...(user
+      ? [
+          { label: "Courses", href: "/courses" },
+          // Item Sign Out dengan onClick
+          { label: "Sign Out", href: "#", onClick: handleLogout },
+        ]
+      : []),
+
+    // JIKA USER BELUM LOGIN (Tampilkan Login saja)
+    ...(!user ? [{ label: "Login", href: "/login" }] : []),
+  ];
+
   return (
     <div className="flex items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <PillNav
         logo="/next.svg"
         logoAlt="Company Logo"
-        items={[
-          { label: "Home", href: "/" },
-          { label: "Courses", href: "/courses" },
-        ]}
+        items={navItems}
         activeHref="/"
         className="custom-nav"
         ease="power2.easeOut"
@@ -55,7 +116,10 @@ export default function Home() {
         </section>
 
         {/* 3 Benefit */}
-        <section id="benefits-section" className="container mx-auto px-4 py-8 text-white pointer-events-auto">
+        <section
+          id="benefits-section"
+          className="container mx-auto px-4 py-8 text-white pointer-events-auto"
+        >
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3 w-full ">
             <SpotlightCard
               // --- STYLING CONTAINER KARTU ---

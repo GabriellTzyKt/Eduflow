@@ -46,8 +46,8 @@ export default function Register() {
 
       if (response.status === 200) {
         console.log(response);
-        // router.push("/login");
-        // router.refresh();
+        router.push("/login");
+        router.refresh();
       } else {
         setError("Gagal mendaftar. Silakan coba lagi.");
       }

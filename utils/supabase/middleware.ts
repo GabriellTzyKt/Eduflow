@@ -34,21 +34,14 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // --- LOGIKA PROTEKSI HALAMAN ---
 
   const path = request.nextUrl.pathname;
 
-  // 1. Tentukan halaman mana saja yang BOLEH diakses TANPA LOGIN
-  //    - path === '/' artinya Landing Page
-  //    - startsWith('/login') artinya halaman login
-  //    - startsWith('/register') artinya halaman daftar
-  //    - (Opsional) Tambahkan '/about' atau '/contact' jika ada
   const isPublicPath = path === '/' || 
                        path.startsWith('/login') || 
                        path.startsWith('/register')|| 
                        path.startsWith('/api');
 
-  // 2. Cek: Jika User BELUM Login DAN mencoba akses halaman RAHASIA (bukan public)
   if (!user && !isPublicPath) {
     // Tendang ke halaman login
     const url = request.nextUrl.clone();

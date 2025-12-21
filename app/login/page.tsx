@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { Atom, Loader2, Eye, EyeOff } from "lucide-react"; // Import ikon tambahan
 import { useRouter } from "next/navigation";
@@ -6,11 +6,11 @@ import { useState } from "react";
 
 export default function Login() {
   const router = useRouter();
-  
+
   // State Input
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  
+
   // State UI
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,8 +30,7 @@ export default function Login() {
     }
 
     try {
-      // Mengirim data ke Route Handler (API)
-      const response = await fetch("/api/login", { // Pastikan Anda punya file app/api/login/route.ts
+      const response = await fetch("/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -42,12 +41,17 @@ export default function Login() {
       const data = await response.json();
 
       if (response.ok) {
-        // Berhasil: Arahkan ke dashboard/home
-        router.push("/"); // Ubah sesuai halaman tujuan setelah login
-        router.refresh();
+        const role = data.role;
+        if (role === "murid") {
+          router.push("/student/dashboard");
+        } else if (role === "guru") {
+          router.push("/teacher/dashboard");
+        }
       } else {
         // Gagal
-        setError(data.message || "Gagal masuk. Periksa email atau password Anda.");
+        setError(
+          data.message || "Gagal masuk. Periksa email atau password Anda."
+        );
       }
     } catch (err) {
       console.error("Sign-in failed:", err);
@@ -59,14 +63,12 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen flex-col justify-center items-center px-6 py-12 lg:px-8">
-      
       {/* KARTU LOGIN */}
       <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-black/30 p-8 shadow-2xl backdrop-blur-md sm:p-10">
-        
         {/* Header */}
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <div className="mx-auto h-10 w-10 text-white flex items-center justify-center">
-             <Atom className="w-full h-full" />
+            <Atom className="w-full h-full" />
           </div>
           <h2 className="mt-6 text-center text-2xl font-bold tracking-tight text-white">
             Sign in to your account
@@ -77,7 +79,6 @@ export default function Login() {
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-sm">
           {/* Tambahkan onSubmit */}
           <form className="space-y-6" onSubmit={handleSubmit}>
-            
             {/* Menampilkan Error Pesan */}
             {error && (
               <div className="rounded-md bg-red-500/10 p-3 text-sm text-red-400 border border-red-500/20 text-center">
@@ -87,7 +88,10 @@ export default function Login() {
 
             {/* Input Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-200">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-200"
+              >
                 Email address
               </label>
               <div className="mt-2">
@@ -109,16 +113,22 @@ export default function Login() {
             {/* Input Password */}
             <div>
               <div className="flex items-center justify-between">
-                <label htmlFor="password" className="block text-sm font-medium text-gray-200">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-200"
+                >
                   Password
                 </label>
                 <div className="text-sm">
-                  <a href="#" className="font-semibold text-indigo-400 hover:text-indigo-300 transition-colors">
+                  <a
+                    href="#"
+                    className="font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
+                  >
                     Forgot password?
                   </a>
                 </div>
               </div>
-              
+
               {/* Wrapper Relative untuk Icon Mata */}
               <div className="mt-2 relative">
                 <input
