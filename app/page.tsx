@@ -56,7 +56,7 @@ export default function Home() {
     { label: "Home", href: "/" },
     ...(user
       ? [
-          { label: "Courses", href: "/courses" },
+          { label: "Courses", href: "/student/dashboard" },
           { label: "Sign Out", href: "#", onClick: handleLogout },
         ]
       : []),
