@@ -16,6 +16,7 @@ interface Class {
 interface Submission {
   id: string;
   student_id: string;
+  student_email: string;
   assignment_title: string;
   class_id: string;
   class_title: string;
@@ -54,6 +55,9 @@ export default function Submissions() {
         id,
         student_id,
         file_url,
+        profiles (
+        email
+        ),
         submitted_at,
         assignments (
           title,
@@ -74,6 +78,7 @@ export default function Submissions() {
     const formatted = data.map((s: any) => ({
       id: s.id,
       student_id: s.student_id,
+      student_email: s.profiles?.email ?? "-",
       file_url: s.file_url,
       submitted_at: s.submitted_at,
       assignment_title: s.assignments?.title ?? "-",
@@ -137,7 +142,7 @@ export default function Submissions() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                {["Student ID", "Tugas", "Kelas", "Waktu", "File"].map((h) => (
+                {["Email", "Tugas", "Kelas", "Waktu", "File"].map((h) => (
                   <th
                     key={h}
                     className="px-6 py-4 text-left text-xs text-gray-600"
@@ -152,7 +157,7 @@ export default function Submissions() {
               {filteredSubmissions.map((s) => (
                 <tr key={s.id} className="border-b hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    {s.student_id}
+                    {s.student_email}
                   </td>
 
                   <td className="px-6 py-4 text-sm">{s.assignment_title}</td>
