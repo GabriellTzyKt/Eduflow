@@ -4,11 +4,12 @@ import React, { useLayoutEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { GoArrowUpRight } from "react-icons/go";
 import { useRouter } from "next/navigation";
-
-/* ================= TYPES ================= */
+import { supabase } from "@/lib/supabase/client";
+import { LogOut } from "lucide-react";
 
 type NavId =
   | "dashboard"
+  | "manage-classes"
   | "manage-materials"
   | "manage-assignments"
   | "submissions";
@@ -25,7 +26,16 @@ type CardNavItem = {
   links: CardNavLink[];
 };
 
-/* ================= COMPONENT ================= */
+const handleLogout = async () => {
+  const { error } = await supabase.auth.signOut();
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  router.replace("/login"); // sesuaikan route login kamu
+};
 
 export default function CardNav() {
   const router = useRouter();
@@ -51,6 +61,7 @@ export default function CardNav() {
       bgColor: "#FFF7ED",
       textColor: "#9A3412",
       links: [
+        { id: "manage-classes", label: "Manage Classes" },
         { id: "manage-materials", label: "Manage Materials" },
         { id: "manage-assignments", label: "Manage Assignments" },
         { id: "submissions", label: "Submissions" },
@@ -62,6 +73,7 @@ export default function CardNav() {
 
   const routeMap: Record<NavId, string> = {
     dashboard: "/teacher/dashboard",
+    "manage-classes": "/teacher/manage-classes",
     "manage-materials": "/teacher/manage-materials",
     "manage-assignments": "/teacher/manage-assignments",
     submissions: "/teacher/submissions",
@@ -174,10 +186,16 @@ export default function CardNav() {
               }`}
             />
           </div>
-          
+
           <h1 className="text-lg font-medium text-gray-700">Eduflow</h1>
 
-          <div className="w-[30px]" />
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 text-sm text-red-600 hover:text-red-700 hover:underline"
+          >
+            <LogOut className="w-4 h-4" />
+            Logout
+          </button>
         </div>
 
         {/* CONTENT */}

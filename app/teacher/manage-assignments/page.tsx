@@ -1,70 +1,106 @@
-"use client";
+'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, Calendar } from 'lucide-react';
 import CardNav from '../../components/cardnav';
 import Modal from '@/app/components/modal';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase/client';
+
+/* ================= TYPES ================= */
+
+interface Class {
+  id: string;
+  title: string;
+}
 
 interface Assignment {
   id: string;
   title: string;
   description: string;
-  deadline: string;
-  className: string;
+  due_date: string;
+  class_id: string;
+  class_title: string;
   submissions: number;
 }
 
-export default function ManageAssignments() {
-  const [assignments, setAssignments] = useState<Assignment[]>([
-    {
-      id: '1',
-      title: 'Final Project - Web Application',
-      description: 'Buat aplikasi web sederhana menggunakan HTML, CSS, dan JavaScript',
-      deadline: '2025-12-25',
-      className: 'Pemrograman Web Dasar',
-      submissions: 23,
-    },
-    {
-      id: '2',
-      title: 'Database Design Assignment',
-      description: 'Rancang skema database untuk sistem perpustakaan',
-      deadline: '2025-12-20',
-      className: 'Database Management',
-      submissions: 31,
-    },
-    {
-      id: '3',
-      title: 'UI Design Portfolio',
-      description: 'Buat portfolio desain UI dengan minimal 3 project',
-      deadline: '2025-12-30',
-      className: 'UI/UX Design Fundamental',
-      submissions: 18,
-    },
-  ]);
+/* ================= COMPONENT ================= */
 
+export default function ManageAssignments() {
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [classes, setClasses] = useState<Class[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    deadline: '',
-    className: '',
+    due_date: '',
+    class_id: '',
   });
 
-  const classes = [
-    'Pemrograman Web Dasar',
-    'Database Management',
-    'UI/UX Design Fundamental',
-  ];
+  /* ================= FETCH DATA ================= */
+
+  const fetchClasses = async () => {
+    const { data, error } = await supabase
+      .from('classes')
+      .select('id, title')
+      .order('title');
+
+    if (error) {
+      toast.error('Gagal mengambil data kelas');
+      return;
+    }
+
+    setClasses(data);
+  };
+
+  const fetchAssignments = async () => {
+    const { data, error } = await supabase
+      .from('assignments')
+      .select(`
+        id,
+        title,
+        description,
+        due_date,
+        class_id,
+        classes ( title ),
+        submissions ( id )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      toast.error('Gagal mengambil data tugas');
+      return;
+    }
+
+    const formatted = data.map((a: any) => ({
+      id: a.id,
+      title: a.title,
+      description: a.description,
+      due_date: a.due_date,
+      class_id: a.class_id,
+      class_title: a.classes?.title ?? '-',
+      submissions: a.submissions?.length ?? 0,
+    }));
+
+    setAssignments(formatted);
+  };
+
+  useEffect(() => {
+    fetchClasses();
+    fetchAssignments();
+  }, []);
+
+  /* ================= CRUD ================= */
 
   const handleAdd = () => {
     setEditingAssignment(null);
     setFormData({
       title: '',
       description: '',
-      deadline: '',
-      className: '',
+      due_date: '',
+      class_id: '',
     });
     setIsModalOpen(true);
   };
@@ -74,244 +110,197 @@ export default function ManageAssignments() {
     setFormData({
       title: assignment.title,
       description: assignment.description,
-      deadline: assignment.deadline,
-      className: assignment.className,
+      due_date: assignment.due_date,
+      class_id: assignment.class_id,
     });
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string, title: string) => {
-    if (confirm(`Apakah Anda yakin ingin menghapus tugas "${title}"?`)) {
-      setAssignments(assignments.filter((a) => a.id !== id));
-      toast.success('Tugas berhasil dihapus');
+  const handleDelete = async (id: string, title: string) => {
+    if (!confirm(`Yakin ingin menghapus tugas "${title}"?`)) return;
+
+    const { error } = await supabase
+      .from('assignments')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast.error('Gagal menghapus tugas');
+      return;
     }
+
+    toast.success('Tugas berhasil dihapus');
+    fetchAssignments();
   };
 
-  const handleSubmit = () => {
-    if (!formData.title || !formData.description || !formData.deadline || !formData.className) {
+  const handleSubmit = async () => {
+    if (!formData.title || !formData.description || !formData.due_date || !formData.class_id) {
       toast.error('Mohon isi semua field');
       return;
     }
 
     if (editingAssignment) {
-      setAssignments(
-        assignments.map((a) =>
-          a.id === editingAssignment.id
-            ? {
-                ...a,
-                title: formData.title,
-                description: formData.description,
-                deadline: formData.deadline,
-                className: formData.className,
-              }
-            : a
-        )
-      );
+      const { error } = await supabase
+        .from('assignments')
+        .update({
+          title: formData.title,
+          description: formData.description,
+          due_date: formData.due_date,
+          class_id: formData.class_id,
+        })
+        .eq('id', editingAssignment.id);
+
+      if (error) {
+        toast.error('Gagal memperbarui tugas');
+        return;
+      }
+
       toast.success('Tugas berhasil diperbarui');
     } else {
-      const newAssignment: Assignment = {
-        id: Date.now().toString(),
-        title: formData.title,
-        description: formData.description,
-        deadline: formData.deadline,
-        className: formData.className,
-        submissions: 0,
-      };
-      setAssignments([...assignments, newAssignment]);
+      const { error } = await supabase
+        .from('assignments')
+        .insert({
+          title: formData.title,
+          description: formData.description,
+          due_date: formData.due_date,
+          class_id: formData.class_id,
+        });
+
+      if (error) {
+        toast.error('Gagal menambahkan tugas');
+        return;
+      }
+
       toast.success('Tugas berhasil ditambahkan');
     }
 
     setIsModalOpen(false);
+    setEditingAssignment(null);
     setFormData({
       title: '',
       description: '',
-      deadline: '',
-      className: '',
+      due_date: '',
+      class_id: '',
     });
-    setEditingAssignment(null);
+    fetchAssignments();
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('id-ID', {
+  /* ================= HELPERS ================= */
+
+  const formatDate = (date: string) =>
+    new Date(date).toLocaleDateString('id-ID', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
     });
-  };
+
+  /* ================= UI ================= */
 
   return (
     <div className="min-h-screen bg-gray-50">
       <CardNav />
-      <div className="flex">
-        <main className="flex-1 p-8">
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h1 className="text-gray-900 mb-2">Manajemen Tugas</h1>
-              <p className="text-gray-600">
-                Kelola tugas untuk kelas Anda
+      <main className="p-8 mt-17">
+        <div className="mb-4 flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Manajemen Tugas</h1>
+            <p className="text-gray-600">Kelola tugas pembelajaran</p>
+          </div>
+
+          <button
+            onClick={handleAdd}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg"
+          >
+            <Plus className="w-5 h-5" />
+            Tambah Tugas
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {assignments.map((a) => (
+            <div key={a.id} className="bg-white border rounded-xl p-6">
+              <h3 className="font-semibold">{a.title}</h3>
+              <p className="text-sm text-gray-600">{a.description}</p>
+              <p className="text-sm text-gray-500 mb-3">Kelas: {a.class_title}</p>
+
+              <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
+                <Calendar className="w-4 h-4" />
+                {formatDate(a.due_date)}
+              </div>
+
+              <p className="text-sm text-blue-600 mb-4">
+                {a.submissions} pengumpulan
               </p>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleEdit(a)}
+                  className="flex-1 flex justify-center items-center gap-2 bg-blue-50 text-blue-600 py-2 rounded-lg"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(a.id, a.title)}
+                  className="flex-1 flex justify-center items-center gap-2 bg-red-50 text-red-600 py-2 rounded-lg"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Hapus
+                </button>
+              </div>
             </div>
-            <button
-              onClick={handleAdd}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          ))}
+        </div>
+
+        {/* MODAL */}
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title={editingAssignment ? 'Edit Tugas' : 'Tambah Tugas'}
+        >
+          <div className="space-y-4">
+            <input
+              placeholder="Judul tugas"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              className="w-full border px-4 py-2 rounded-lg"
+            />
+
+            <textarea
+              placeholder="Deskripsi"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="w-full border px-4 py-2 rounded-lg"
+            />
+
+            <input
+              type="date"
+              value={formData.due_date}
+              onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+              className="w-full border px-4 py-2 rounded-lg"
+            />
+
+            <select
+              value={formData.class_id}
+              onChange={(e) => setFormData({ ...formData, class_id: e.target.value })}
+              className="w-full border px-4 py-2 rounded-lg"
             >
-              <Plus className="w-5 h-5" />
-              <span>Tambah Tugas</span>
+              <option value="">Pilih kelas</option>
+              {classes.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.title}
+                </option>
+              ))}
+            </select>
+
+            <button
+              onClick={handleSubmit}
+              className="w-full bg-blue-600 text-white py-2 rounded-lg"
+            >
+              Simpan
             </button>
           </div>
-
-          {/* Assignments Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {assignments.map((assignment) => (
-              <div
-                key={assignment.id}
-                className="bg-white rounded-xl border border-gray-200 p-6"
-              >
-                <div className="mb-4">
-                  <h3 className="text-gray-900 mb-2">{assignment.title}</h3>
-                  <p className="text-gray-600 text-sm mb-3">
-                    {assignment.description}
-                  </p>
-                  <p className="text-gray-500 text-sm mb-2">
-                    Kelas: {assignment.className}
-                  </p>
-                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                    <Calendar className="w-4 h-4" />
-                    <span>Deadline: {formatDate(assignment.deadline)}</span>
-                  </div>
-                  <p className="text-sm text-blue-600">
-                    {assignment.submissions} pengumpulan
-                  </p>
-                </div>
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(assignment)}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                    <span>Edit</span>
-                  </button>
-                  <button
-                    onClick={() => handleDelete(assignment.id, assignment.title)}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    <span>Hapus</span>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Add/Edit Modal */}
-          <Modal
-            isOpen={isModalOpen}
-            onClose={() => {
-              setIsModalOpen(false);
-              setFormData({
-                title: '',
-                description: '',
-                deadline: '',
-                className: '',
-              });
-              setEditingAssignment(null);
-            }}
-            title={editingAssignment ? 'Edit Tugas' : 'Tambah Tugas Baru'}
-          >
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-gray-700 mb-2">
-                  Judul Tugas
-                </label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  placeholder="Contoh: Final Project - Web Application"
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-700 mb-2">
-                  Instruksi
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  placeholder="Jelaskan instruksi tugas..."
-                  rows={4}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent text-sm resize-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-700 mb-2">
-                  Deadline
-                </label>
-                <input
-                  type="date"
-                  value={formData.deadline}
-                  onChange={(e) =>
-                    setFormData({ ...formData, deadline: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-700 mb-2">
-                  Kelas
-                </label>
-                <select
-                  value={formData.className}
-                  onChange={(e) =>
-                    setFormData({ ...formData, className: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent text-sm"
-                >
-                  <option value="">Pilih kelas</option>
-                  {classes.map((className) => (
-                    <option key={className} value={className}>
-                      {className}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  onClick={() => {
-                    setIsModalOpen(false);
-                    setFormData({
-                      title: '',
-                      description: '',
-                      deadline: '',
-                      className: '',
-                    });
-                    setEditingAssignment(null);
-                  }}
-                  className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={handleSubmit}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  {editingAssignment ? 'Simpan' : 'Tambah'}
-                </button>
-              </div>
-            </div>
-          </Modal>
-        </main>
-      </div>
+        </Modal>
+      </main>
     </div>
   );
 }

@@ -1,80 +1,93 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 import CardNav from '../../components/cardnav';
 import MaterialCard from '../../components/material_card';
 import Modal from '../../components/modal';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase/client';
+
+interface Class {
+  id: string;
+  title: string;
+}
 
 interface Material {
   id: string;
   title: string;
   description: string;
-  type: 'pdf' | 'video' | 'document';
-  uploadedBy: string;
-  uploadedAt: string;
-  className: string;
+  file_url: string | null;
+  created_at: string;
+  class: Class;
 }
 
 export default function ManageMaterials() {
-  const [materials, setMaterials] = useState<Material[]>([
-    {
-      id: '1',
-      title: 'Introduction to HTML & CSS',
-      description:
-        'Panduan lengkap memulai web development dengan HTML dan CSS',
-      type: 'pdf',
-      uploadedBy: 'Dr. Ahmad Sutanto',
-      uploadedAt: '2 hari yang lalu',
-      className: 'Pemrograman Web Dasar',
-    },
-    {
-      id: '2',
-      title: 'JavaScript Fundamentals',
-      description:
-        'Video tutorial dasar-dasar JavaScript untuk pemula',
-      type: 'video',
-      uploadedBy: 'Dr. Ahmad Sutanto',
-      uploadedAt: '5 hari yang lalu',
-      className: 'Pemrograman Web Dasar',
-    },
-    {
-      id: '3',
-      title: 'SQL Query Basics',
-      description: 'Dokumen referensi untuk query SQL dasar',
-      type: 'pdf',
-      uploadedBy: 'Dr. Ahmad Sutanto',
-      uploadedAt: '1 minggu yang lalu',
-      className: 'Database Management',
-    },
-  ]);
-
+  const [materials, setMaterials] = useState<Material[]>([]);
+  const [classes, setClasses] = useState<Class[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingMaterial, setEditingMaterial] =
-    useState<Material | null>(null);
+  const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
 
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    type: 'pdf' as 'pdf' | 'video' | 'document',
-    className: '',
+    class_id: '',
   });
 
-  const classes = [
-    'Pemrograman Web Dasar',
-    'Database Management',
-    'UI/UX Design Fundamental',
-  ];
+  /* ================= FETCH DATA ================= */
+
+  const fetchClasses = async () => {
+    const { data, error } = await supabase
+      .from('classes')
+      .select('id, title');
+
+    if (error) {
+      toast.error('Gagal mengambil data kelas');
+      return;
+    }
+
+    setClasses(data);
+  };
+
+  const fetchMaterials = async () => {
+    const { data, error } = await supabase
+      .from('materials')
+      .select(`
+        id,
+        title,
+        content,
+        file_url,
+        created_at,
+        class:classes (
+          id,
+          title
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      toast.error('Gagal mengambil data materi');
+      return;
+    }
+
+    setMaterials(
+      data.map((m: any) => ({
+        ...m,
+        description: m.content,
+      }))
+    );
+  };
+
+  useEffect(() => {
+    fetchClasses();
+    fetchMaterials();
+  }, []);
+
+  /* ================= CRUD ================= */
 
   const handleAdd = () => {
     setEditingMaterial(null);
-    setFormData({
-      title: '',
-      description: '',
-      type: 'pdf',
-      className: '',
-    });
+    setFormData({ title: '', description: '', class_id: '' });
     setIsModalOpen(true);
   };
 
@@ -83,99 +96,113 @@ export default function ManageMaterials() {
     setFormData({
       title: material.title,
       description: material.description,
-      type: material.type,
-      className: material.className,
+      class_id: material.class.id,
     });
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string, title: string) => {
-    if (confirm(`Apakah Anda yakin ingin menghapus materi "${title}"?`)) {
-      setMaterials(materials.filter((m) => m.id !== id));
-      toast.success('Materi berhasil dihapus');
+  const handleDelete = async (id: string) => {
+    if (!confirm('Yakin ingin menghapus materi ini?')) return;
+
+    const { error } = await supabase
+      .from('materials')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast.error('Gagal menghapus materi');
+      return;
     }
+
+    toast.success('Materi berhasil dihapus');
+    fetchMaterials();
   };
 
-  const handleSubmit = () => {
-    if (!formData.title || !formData.description || !formData.className) {
+  const handleSubmit = async () => {
+    if (!formData.title || !formData.description || !formData.class_id) {
       toast.error('Mohon isi semua field');
       return;
     }
 
     if (editingMaterial) {
-      setMaterials(
-        materials.map((m) =>
-          m.id === editingMaterial.id
-            ? { ...m, ...formData }
-            : m
-        )
-      );
+      const { error } = await supabase
+        .from('materials')
+        .update({
+          title: formData.title,
+          content: formData.description,
+          class_id: formData.class_id,
+        })
+        .eq('id', editingMaterial.id);
+
+      if (error) {
+        toast.error('Gagal memperbarui materi');
+        return;
+      }
+
       toast.success('Materi berhasil diperbarui');
     } else {
-      setMaterials([
-        ...materials,
-        {
-          id: Date.now().toString(),
-          ...formData,
-          uploadedBy: 'Dr. Ahmad Sutanto',
-          uploadedAt: 'Baru saja',
-        },
-      ]);
+      const { error } = await supabase.from('materials').insert({
+        title: formData.title,
+        content: formData.description,
+        class_id: formData.class_id,
+      });
+
+      if (error) {
+        toast.error('Gagal menambahkan materi');
+        return;
+      }
+
       toast.success('Materi berhasil ditambahkan');
     }
 
     setIsModalOpen(false);
     setEditingMaterial(null);
-    setFormData({
-      title: '',
-      description: '',
-      type: 'pdf',
-      className: '',
-    });
+    setFormData({ title: '', description: '', class_id: '' });
+    fetchMaterials();
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 relative">
-      {/* ✅ TOP NAVBAR */}
-      <CardNav />
+  /* ================= UI ================= */
 
-      {/* ✅ MAIN CONTENT */}
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <CardNav />
       <main className="pt-[120px] px-8">
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-4 flex justify-between">
           <div>
-            <h1 className="text-gray-900 mb-2">Manajemen Materi</h1>
-            <p className="text-gray-600">
-              Kelola materi pembelajaran untuk kelas Anda
-            </p>
+            <h1 className="text-gray-900 text-2xl font-bold">Manajemen Materi</h1>
+            <p className="text-gray-600">Kelola materi pembelajaran</p>
           </div>
 
           <button
             onClick={handleAdd}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="flex items-center gap-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Plus className="w-5 h-5" />
             Upload Materi
           </button>
         </div>
 
-        {/* Materials List */}
         <div className="space-y-4">
           {materials.map((material) => (
             <div key={material.id} className="relative group">
-              <MaterialCard {...material} />
+              <MaterialCard
+                title={material.title}
+                description={material.description}
+                uploadedBy="Teacher"
+                uploadedAt={new Date(material.created_at).toLocaleDateString()}
+                className={material.class.title}
+              />
 
-              <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100">
                 <button
                   onClick={() => handleEdit(material)}
-                  className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="p-2 bg-blue-600 text-white rounded-lg"
                 >
                   <Edit2 className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() =>
-                    handleDelete(material.id, material.title)
-                  }
-                  className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                  onClick={() => handleDelete(material.id)}
+                  className="p-2 bg-red-600 text-white rounded-lg"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -184,117 +211,53 @@ export default function ManageMaterials() {
           ))}
         </div>
 
-        {/* Modal */}
         <Modal
-            isOpen={isModalOpen}
-            onClose={() => {
-              setIsModalOpen(false);
-              setFormData({
-                title: '',
-                description: '',
-                type: 'pdf',
-                className: '',
-              });
-              setEditingMaterial(null);
-            }}
-            title={editingMaterial ? 'Edit Materi' : 'Upload Materi Baru'}
-          >
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-gray-700 mb-2">
-                  Judul Materi
-                </label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  placeholder="Contoh: Introduction to HTML & CSS"
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent text-sm"
-                />
-              </div>
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title={editingMaterial ? 'Edit Materi' : 'Upload Materi'}
+        >
+          <div className="space-y-4">
+            <input
+              placeholder="Judul"
+              value={formData.title}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
+              className="w-full px-4 py-2 border rounded-lg"
+            />
 
-              <div>
-                <label className="block text-sm text-gray-700 mb-2">
-                  Deskripsi
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  placeholder="Jelaskan tentang materi ini..."
-                  rows={3}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent text-sm resize-none"
-                />
-              </div>
+            <textarea
+              placeholder="Deskripsi"
+              value={formData.description}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
+              className="w-full px-4 py-2 border rounded-lg"
+            />
 
-              <div>
-                <label className="block text-sm text-gray-700 mb-2">
-                  Tipe Materi
-                </label>
-                <select
-                  value={formData.type}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      type: e.target.value as 'pdf' | 'video' | 'document',
-                    })
-                  }
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent text-sm"
-                >
-                  <option value="pdf">PDF</option>
-                  <option value="video">Video</option>
-                  <option value="document">Dokumen</option>
-                </select>
-              </div>
+            <select
+              value={formData.class_id}
+              onChange={(e) =>
+                setFormData({ ...formData, class_id: e.target.value })
+              }
+              className="w-full px-4 py-2 border rounded-lg"
+            >
+              <option value="">Pilih kelas</option>
+              {classes.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.title}
+                </option>
+              ))}
+            </select>
 
-              <div>
-                <label className="block text-sm text-gray-700 mb-2">
-                  Kelas
-                </label>
-                <select
-                  value={formData.className}
-                  onChange={(e) =>
-                    setFormData({ ...formData, className: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent text-sm"
-                >
-                  <option value="">Pilih kelas</option>
-                  {classes.map((className) => (
-                    <option key={className} value={className}>
-                      {className}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  onClick={() => {
-                    setIsModalOpen(false);
-                    setFormData({
-                      title: '',
-                      description: '',
-                      type: 'pdf',
-                      className: '',
-                    });
-                    setEditingMaterial(null);
-                  }}
-                  className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={handleSubmit}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  {editingMaterial ? 'Simpan' : 'Upload'}
-                </button>
-              </div>
-            </div>
-          </Modal>
+            <button
+              onClick={handleSubmit}
+              className="w-full bg-blue-600 text-white py-2 rounded-lg"
+            >
+              Simpan
+            </button>
+          </div>
+        </Modal>
       </main>
     </div>
   );
