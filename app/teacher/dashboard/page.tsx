@@ -1,8 +1,7 @@
 import { BookOpen, FileText, CheckSquare, Users } from 'lucide-react';
 import CardNav from '@/app/components/cardnav';
-import FloatingLines from '@/app/components/background/floatingLines';
 
-export default function TeacherDashboard() {
+export default function teacherDashboard() {
 
   const stats = [
     {
