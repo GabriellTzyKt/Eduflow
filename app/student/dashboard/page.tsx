@@ -4,13 +4,17 @@ import { BookOpen, FileText, Clock, CheckCircle, XCircle, Download, ArrowBigRigh
 // Kita asumsikan Anda sudah punya komponen Upload (Client Component) dari percakapan sebelumnya
 // Jika belum, Anda bisa menghapus baris import ini sementara
 import SubmitAssignment from "../../components/studentAsignment"; 
+import LogoutButton from "../../components/logout";
 
 // Opsi ini memaksa halaman selalu mengambil data terbaru (tidak di-cache statis)
 export const dynamic = "force-dynamic";
 
 export default async function StudentDashboard() {
+
+  
   // 1. Inisialisasi Supabase Server Client
   const supabase = await createClient();
+  
 
   // 2. Cek User Session
   const { data: { user } } = await supabase.auth.getUser();
@@ -68,14 +72,39 @@ export default async function StudentDashboard() {
       <div className="max-w-6xl mx-auto">
         
         {/* HEADER DASHBOARD */}
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Halo, {profile?.full_name || user.email} 👋
-          </h1>
-          <p className="text-gray-500 mt-1">
-            Selamat datang di dashboard pembelajaran Anda.
-          </p>
-        </header>
+<header className="mb-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all hover:shadow-md">
+  
+  {/* Bagian Kiri: Teks */}
+  <div>
+    <div className="flex items-center gap-2 mb-1">
+      <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+        Halo, <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">{profile?.full_name || user.email}</span>
+      </h1>
+      <span className="text-2xl animate-bounce">👋</span>
+    </div>
+    <p className="text-gray-500 text-sm font-medium flex items-center gap-2">
+      <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+      Selamat datang kembali, siap untuk belajar hari ini?
+    </p>
+  </div>
+
+  {/* Bagian Kanan: Tanggal & Logout */}
+  <div className="flex items-center gap-4">
+    {/* Opsional: Menampilkan Tanggal */}
+    <div className="hidden md:block text-right mr-2">
+      <p className="text-xs text-gray-400 uppercase font-bold tracking-wider">Hari Ini</p>
+      <p className="text-sm font-semibold text-gray-700">
+        {new Date().toLocaleDateString("id-ID", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+      </p>
+    </div>
+    
+    {/* Tombol Logout */}
+    <div className="shrink-0">
+      <LogoutButton />
+    </div>
+  </div>
+
+</header>
 
         {/* INFO KELAS UTAMA */}
         {!classes ? (
