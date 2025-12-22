@@ -6,6 +6,7 @@ import { GoArrowUpRight } from "react-icons/go";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { LogOut } from "lucide-react";
+import LogoutButton from "./logout";
 
 type NavId =
   | "dashboard"
@@ -24,17 +25,6 @@ type CardNavItem = {
   bgColor: string;
   textColor: string;
   links: CardNavLink[];
-};
-
-const handleLogout = async () => {
-  const { error } = await supabase.auth.signOut();
-
-  if (error) {
-    console.error(error);
-    return;
-  }
-
-  router.replace("/login"); // sesuaikan route login kamu
 };
 
 export default function CardNav() {
@@ -189,13 +179,7 @@ export default function CardNav() {
 
           <h1 className="text-lg font-medium text-gray-700">Eduflow</h1>
 
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 text-sm text-red-600 hover:text-red-700 hover:underline"
-          >
-            <LogOut className="w-4 h-4" />
-            Logout
-          </button>
+          <LogoutButton />
         </div>
 
         {/* CONTENT */}

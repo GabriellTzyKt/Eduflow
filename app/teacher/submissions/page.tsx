@@ -92,10 +92,10 @@ export default function Submissions() {
   /* ================= HANDLERS ================= */
 
   const handleDownload = async (fileUrl: string) => {
-    const cleanPath = fileUrl.replace(/^submissions\//, "");
+    const cleanPath = fileUrl;
 
     const { data, error } = await supabase.storage
-      .from("submissions")
+      .from("school-files")
       .createSignedUrl(cleanPath, 60);
 
     if (error) {
