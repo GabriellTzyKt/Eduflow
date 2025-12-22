@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabaseClient"; // Import dari lib server yang Anda punya
 import { redirect } from "next/navigation";
-import { BookOpen, FileText, Clock, CheckCircle, XCircle, Download } from "lucide-react";
+import { BookOpen, FileText, Clock, CheckCircle, XCircle, Download, ArrowBigRight, ArrowRight } from "lucide-react";
 // Kita asumsikan Anda sudah punya komponen Upload (Client Component) dari percakapan sebelumnya
 // Jika belum, Anda bisa menghapus baris import ini sementara
 import SubmitAssignment from "../../components/studentAsignment"; 
@@ -124,7 +124,7 @@ export default async function StudentDashboard() {
                             target="_blank"
                             className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-indigo-600 bg-indigo-50 px-3 py-2 rounded-lg hover:bg-indigo-100 transition-colors"
                           >
-                            <Download className="w-4 h-4" /> Download Modul
+                            Lihat Modul <ArrowRight className="w-4 h-4" />
                           </a>
                         )}
                       </div>
