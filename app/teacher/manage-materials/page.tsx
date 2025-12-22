@@ -31,6 +31,7 @@ export default function ManageMaterials() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    file_url: '',
     class_id: '',
   });
 
@@ -87,7 +88,7 @@ export default function ManageMaterials() {
 
   const handleAdd = () => {
     setEditingMaterial(null);
-    setFormData({ title: '', description: '', class_id: '' });
+    setFormData({ title: '', description: '', class_id: '', file_url: '' });
     setIsModalOpen(true);
   };
 
@@ -97,6 +98,7 @@ export default function ManageMaterials() {
       title: material.title,
       description: material.description,
       class_id: material.class.id,
+      file_url: material.file_url || '',
     });
     setIsModalOpen(true);
   };
@@ -131,6 +133,7 @@ export default function ManageMaterials() {
           title: formData.title,
           content: formData.description,
           class_id: formData.class_id,
+          file_url: formData.file_url,
         })
         .eq('id', editingMaterial.id);
 
@@ -145,6 +148,7 @@ export default function ManageMaterials() {
         title: formData.title,
         content: formData.description,
         class_id: formData.class_id,
+        file_url: formData.file_url,
       });
 
       if (error) {
@@ -157,7 +161,7 @@ export default function ManageMaterials() {
 
     setIsModalOpen(false);
     setEditingMaterial(null);
-    setFormData({ title: '', description: '', class_id: '' });
+    setFormData({ title: '', description: '', class_id: '', file_url: '' });
     fetchMaterials();
   };
 
@@ -191,6 +195,7 @@ export default function ManageMaterials() {
                 uploadedBy="Teacher"
                 uploadedAt={new Date(material.created_at).toLocaleDateString()}
                 className={material.class.title}
+                file_url={material.file_url}
               />
 
               <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100">
@@ -222,6 +227,15 @@ export default function ManageMaterials() {
               value={formData.title}
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
+              }
+              className="w-full px-4 py-2 border rounded-lg"
+            />
+
+            <input
+              placeholder="Link Materi"
+              value={formData.file_url}
+              onChange={(e) =>
+                setFormData({ ...formData, file_url: e.target.value })
               }
               className="w-full px-4 py-2 border rounded-lg"
             />
