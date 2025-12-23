@@ -37,7 +37,6 @@ export default function CardNav() {
   const cardsRef = useRef<HTMLDivElement[]>([]);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
 
-  /* ================= MENU ================= */
 
   const items: CardNavItem[] = [
     {
@@ -59,7 +58,6 @@ export default function CardNav() {
     },
   ];
 
-  /* ================= ROUTE MAP ================= */
 
   const routeMap: Record<NavId, string> = {
     dashboard: "/teacher/dashboard",
@@ -69,7 +67,6 @@ export default function CardNav() {
     submissions: "/teacher/submissions",
   };
 
-  /* ================= GSAP ================= */
 
   const calculateHeight = () => {
     if (typeof window === "undefined") return 260;
@@ -151,7 +148,6 @@ export default function CardNav() {
     if (el) cardsRef.current[i] = el;
   };
 
-  /* ================= RENDER ================= */
 
   return (
     <div className="absolute left-1/2 -translate-x-1/2 w-[90%] max-w-[800px] z-[99] top-[1.5rem]">

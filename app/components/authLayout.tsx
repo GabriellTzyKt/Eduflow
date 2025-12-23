@@ -1,13 +1,12 @@
 "use client";
 
 import React from "react";
-import FloatingLines from "./floatingLines"; // Pastikan path import ini benar sesuai struktur folder Anda
+import FloatingLines from "./floatingLines";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-gray-950 text-white">
       
-      {/* 1. BACKGROUND FLOATING LINES (Dipindahkan dari layout lama) */}
       <div className="absolute inset-0 z-0 opacity-60">
         <FloatingLines
           enabledWaves={["top", "middle", "bottom"]}
@@ -21,10 +20,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         />
       </div>
 
-      {/* 2. BACKGROUND GRADIENT TAMBAHAN (Agar teks lebih terbaca) */}
       <div className="absolute inset-0 z-0 bg-gradient-to-br from-black/80 via-transparent to-purple-900/50 pointer-events-none" />
-
-      {/* 3. KONTEN UTAMA (Login/Register Form) */}
       <div className="relative z-10 w-full max-w-md px-4">
         {children}
       </div>

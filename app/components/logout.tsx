@@ -7,7 +7,6 @@ import { LogOut, Loader2 } from "lucide-react";
 export default function LogoutButton() {
 const router = useRouter();
 
-  // --- LOGIKA AUTHENTICATION (TETAP SAMA) ---
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
 

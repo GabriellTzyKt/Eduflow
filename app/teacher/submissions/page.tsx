@@ -6,8 +6,6 @@ import CardNav from "../../components/cardnav";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase/client";
 
-/* ================= TYPES ================= */
-
 interface Class {
   id: string;
   title: string;
@@ -24,14 +22,12 @@ interface Submission {
   file_url: string;
 }
 
-/* ================= COMPONENT ================= */
 
 export default function Submissions() {
   const [classes, setClasses] = useState<Class[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [filterClass, setFilterClass] = useState("all");
 
-  /* ================= FETCH ================= */
 
   const fetchClasses = async () => {
     const { data, error } = await supabase
@@ -94,7 +90,6 @@ export default function Submissions() {
     fetchSubmissions();
   }, []);
 
-  /* ================= HANDLERS ================= */
 
   const handleDownload = async (fileUrl: string) => {
     const cleanPath = fileUrl;
@@ -124,7 +119,6 @@ export default function Submissions() {
       minute: "2-digit",
     });
 
-  /* ================= UI ================= */
 
   return (
     <div className="min-h-screen bg-gray-50">

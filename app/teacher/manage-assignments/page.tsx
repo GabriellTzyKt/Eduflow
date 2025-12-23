@@ -7,7 +7,6 @@ import Modal from '@/app/components/modal';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
 
-/* ================= TYPES ================= */
 
 interface Class {
   id: string;
@@ -24,8 +23,6 @@ interface Assignment {
   submissions: number;
 }
 
-/* ================= COMPONENT ================= */
-
 export default function ManageAssignments() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [classes, setClasses] = useState<Class[]>([]);
@@ -38,8 +35,6 @@ export default function ManageAssignments() {
     due_date: '',
     class_id: '',
   });
-
-  /* ================= FETCH DATA ================= */
 
   const fetchClasses = async () => {
     const { data, error } = await supabase
@@ -91,8 +86,6 @@ export default function ManageAssignments() {
     fetchClasses();
     fetchAssignments();
   }, []);
-
-  /* ================= CRUD ================= */
 
   const handleAdd = () => {
     setEditingAssignment(null);
@@ -185,16 +178,12 @@ export default function ManageAssignments() {
     fetchAssignments();
   };
 
-  /* ================= HELPERS ================= */
-
   const formatDate = (date: string) =>
     new Date(date).toLocaleDateString('id-ID', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
     });
-
-  /* ================= UI ================= */
 
   return (
     <div className="min-h-screen bg-gray-50">

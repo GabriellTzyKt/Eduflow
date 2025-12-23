@@ -17,8 +17,6 @@ export default function SubmitAssignment({ assignmentId, studentId, existingSubm
   const [errorMsg, setErrorMsg] = useState("");
   const router = useRouter();
 
-  // 2. Inisialisasi Supabase LANGSUNG DI SINI
-  // Tidak perlu import dari file lain.
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -31,18 +29,15 @@ export default function SubmitAssignment({ assignmentId, studentId, existingSubm
 
     try {
       const fileExt = file.name.split(".").pop();
-      // Gunakan timestamp agar nama file unik
       const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
       const filePath = `submissions/${studentId}/${assignmentId}/${fileName}`;
 
-      // Upload ke Storage
       const { error: uploadError } = await supabase.storage
-        .from("school-files") // Pastikan nama bucket sesuai
+        .from("school-files") 
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
-      // Simpan ke Database
       const { error: dbError } = await supabase
         .from("submissions")
         .insert({
@@ -65,7 +60,6 @@ export default function SubmitAssignment({ assignmentId, studentId, existingSubm
     }
   };
 
-  // --- TAMPILAN (Render) ---
   
   if (existingSubmission) {
     return (

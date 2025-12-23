@@ -25,7 +25,6 @@ export default function ManageClasses() {
     description: '',
   });
 
-  /* ================= FETCH ================= */
   const fetchClasses = async () => {
     setLoading(true);
 
@@ -48,7 +47,6 @@ export default function ManageClasses() {
     fetchClasses();
   }, []);
 
-  /* ================= HANDLERS ================= */
   const handleAdd = () => {
     setEditingClass(null);
     setFormData({ title: '', description: '' });
@@ -102,7 +100,6 @@ export default function ManageClasses() {
 
       toast.success('Kelas berhasil diperbarui');
     } else {
-      /* INSERT */
       const { error } = await supabase.from('classes').insert({
         title: formData.title,
         description: formData.description,
@@ -123,7 +120,6 @@ export default function ManageClasses() {
     fetchClasses();
   };
 
-  /* ================= UI ================= */
   return (
     <div className="min-h-screen bg-gray-50">
       <CardNav />

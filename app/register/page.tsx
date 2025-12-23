@@ -4,22 +4,18 @@ import { Atom, Loader2, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-// Import AuthLayout yang baru dibuat
 import AuthLayout from "../components/authLayout"; 
 
 export default function Register() {
   const router = useRouter();
 
-  // State Form Data
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // State UI
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // State untuk Show/Hide Password
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -63,7 +59,6 @@ export default function Register() {
     <AuthLayout>
       <div className="flex w-full flex-col items-center justify-center">
         <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-black/30 p-8 shadow-2xl backdrop-blur-md sm:p-10">
-          {/* Header */}
           <div className="sm:mx-auto sm:w-full sm:max-w-sm">
             <div className="mx-auto h-10 w-10 text-white flex items-center justify-center">
               <Atom className="w-full h-full" />
@@ -81,7 +76,6 @@ export default function Register() {
                 </div>
               )}
 
-              {/* Input Email */}
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-200">
                   Your email
@@ -101,7 +95,6 @@ export default function Register() {
                 </div>
               </div>
 
-              {/* Input Password */}
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-200">
                   Password
@@ -128,7 +121,6 @@ export default function Register() {
                 </div>
               </div>
 
-              {/* Input Confirm Password */}
               <div>
                 <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-200">
                   Confirm password
@@ -155,7 +147,6 @@ export default function Register() {
                 </div>
               </div>
 
-              {/* Terms Checkbox */}
               <div className="flex items-start">
                 <div className="flex items-center h-5">
                   <input
@@ -175,7 +166,6 @@ export default function Register() {
                 </div>
               </div>
 
-              {/* Tombol Register */}
               <div>
                 <button
                   type="submit"

@@ -35,7 +35,6 @@ export default function ManageMaterials() {
     class_id: '',
   });
 
-  /* ================= FETCH DATA ================= */
 
   const fetchClasses = async () => {
     const { data, error } = await supabase
@@ -84,7 +83,6 @@ export default function ManageMaterials() {
     fetchMaterials();
   }, []);
 
-  /* ================= CRUD ================= */
 
   const handleAdd = () => {
     setEditingMaterial(null);
@@ -165,7 +163,6 @@ export default function ManageMaterials() {
     fetchMaterials();
   };
 
-  /* ================= UI ================= */
 
   return (
     <div className="min-h-screen bg-gray-50">

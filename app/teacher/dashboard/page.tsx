@@ -5,10 +5,6 @@ import { createClient } from '@/lib/supabaseClient';
 export default async function TeacherDashboard() {
   const supabase = await createClient();
 
-  /* ======================
-      STATS
-  ====================== */
-
   const [{ count: classCount }, { count: submissionCount }] =
     await Promise.all([
       supabase
@@ -20,9 +16,7 @@ export default async function TeacherDashboard() {
         .select('*', { count: 'exact', head: true }),
     ]);
 
-  /* ======================
-      KELAS TERBARU
-  ====================== */
+
 
   const { data: classes } = await supabase
     .from('classes')
@@ -37,7 +31,6 @@ export default async function TeacherDashboard() {
         <CardNav />
 
         <main className="flex-1 mt-17 p-8">
-          {/* Header */}
           <div className="mb-4">
             <h1 className="text-gray-900 text-2xl font-bold">
               Selamat Datang!
@@ -47,7 +40,6 @@ export default async function TeacherDashboard() {
             </p>
           </div>
 
-          {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <StatCard
               label="Total Kelas"
@@ -64,7 +56,6 @@ export default async function TeacherDashboard() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
-            {/* Classes */}
             <div className="bg-white rounded-xl border p-6">
               <h2 className="text-gray-900 mb-6">Kelas Terbaru</h2>
 
@@ -97,9 +88,6 @@ export default async function TeacherDashboard() {
   );
 }
 
-/* ======================
-    COMPONENT KECIL
-====================== */
 
 function StatCard({
   label,

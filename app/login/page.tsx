@@ -8,11 +8,9 @@ import AuthLayout from "../components/authLayout"; // Fixed import path
 export default function Login() {
   const router = useRouter();
 
-  // State Input
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // State UI
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -22,7 +20,6 @@ export default function Login() {
     setIsLoading(true);
     setError(null);
 
-    // Validasi dasar
     if (!email || !password) {
       setError("Email dan password harus diisi.");
       setIsLoading(false);
@@ -42,7 +39,6 @@ export default function Login() {
 
       if (response.ok) {
         const role = data.role;
-        // Refresh router agar middleware update cookie
         router.refresh(); 
         
         if (role === "murid") {
@@ -61,13 +57,9 @@ export default function Login() {
     }
   };
 
-  // BUNGKUS DENGAN AUTH LAYOUT
   return (
     <AuthLayout>
-      {/* KARTU LOGIN */}
       <div className="w-full rounded-2xl border border-white/10 bg-black/40 p-8 shadow-2xl backdrop-blur-xl sm:p-10">
-        
-        {/* Header */}
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <div className="mx-auto h-12 w-12 text-white flex items-center justify-center bg-white/10 rounded-full mb-4">
             <Atom className="w-8 h-8" />
@@ -80,18 +72,15 @@ export default function Login() {
           </p>
         </div>
 
-        {/* Form Area */}
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-sm">
           <form className="space-y-6" onSubmit={handleSubmit}>
             
-            {/* Error Message */}
             {error && (
               <div className="rounded-lg bg-red-500/20 p-3 text-sm text-red-200 border border-red-500/30 text-center animate-pulse">
                 {error}
               </div>
             )}
 
-            {/* Input Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-200">
                 Email address
@@ -111,7 +100,6 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Input Password */}
             <div>
               <div className="flex items-center justify-between">
                 <label htmlFor="password" className="block text-sm font-medium text-gray-200">
@@ -147,7 +135,6 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Tombol Sign In */}
             <div>
               <button
                 type="submit"
@@ -166,7 +153,6 @@ export default function Login() {
             </div>
           </form>
 
-          {/* Footer Register */}
           <p className="mt-8 text-center text-sm text-gray-400">
             Don&apos;t have an account?{" "}
             <a

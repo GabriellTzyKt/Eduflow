@@ -185,7 +185,6 @@ const PillNav: React.FC<PillNavProps> = ({
           duration: 0.2,
           ease,
           transformOrigin: "top center",
-          // --- PERBAIKAN 1: Tambahkan kurung kurawal agar return void ---
           onComplete: () => {
             gsap.set(menu, { visibility: "hidden" });
           },

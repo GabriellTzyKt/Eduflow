@@ -15,15 +15,11 @@ export default function FloatingBackground() {
     let particles: Particle[] = [];
     let animationFrameId: number;
 
-    // --- KONFIGURASI TAMPILAN (YANG DIUBAH) ---
-    const particleCount = 70;      // Diperbanyak agar lebih ramai (tadi 60)
-    const connectionDistance = 160; // Jarak koneksi diperjauh
+    const particleCount = 70;      
+    const connectionDistance = 160; 
     const mouseDistance = 200;
 
-    // Warna: Lebih gelap dan opacity lebih tinggi agar terlihat jelas
-    // Indigo-600 dengan opacity 0.7 (70% terlihat)
     const particleColor = "rgba(79, 70, 229, 0.7)"; 
-    // Indigo-400 dengan opacity 0.35 (Tadi cuma 0.2, sekarang lebih tebal)
     const lineColor = "rgba(129, 140, 248, 0.35)";  
 
     let w = (canvas.width = window.innerWidth);
@@ -41,10 +37,8 @@ export default function FloatingBackground() {
       constructor() {
         this.x = Math.random() * w;
         this.y = Math.random() * h;
-        // Kecepatan sedikit ditambah agar pergerakan lebih dinamis
         this.vx = (Math.random() - 0.5) * 1.5; 
         this.vy = (Math.random() - 0.5) * 1.5; 
-        // Ukuran titik diperbesar sedikit (2 s/d 4px)
         this.size = Math.random() * 2 + 2; 
       }
 
@@ -142,7 +136,6 @@ export default function FloatingBackground() {
   return (
     <canvas
       ref={canvasRef}
-      // Ubah bg-gray-50 jadi putih solid agar kontras garis lebih tajam
       className="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none bg-white"
     />
   );
